@@ -3,11 +3,7 @@ A pipeline for creating PSSMs from BlastP matches.
 
 From the NCBI "A PSSM, or Position-Specific Scoring Matrix, is a type of scoring matrix used in protein BLAST searches in which amino acid substitution scores are given separately for each position in a protein multiple sequence alignment. PSSM scores are generally shown as positive or negative integers. Positive scores indicate that the given amino acid substitution occurs more frequently in the alignment than expected by chance, while negative scores indicate that the substitution occurs less frequently than expected. Large positive scores often indicate critical functional residues, which may be active site residues or residues required for other intermolecular interactions."
 
-Software required:
-CD-HIT
-MUSCLE
-PSI-Blast
-Python >= 2.7
+Software required: CD-HIT, MUSCLE, PSI-Blast, Python >= 2.7
 
 Original procedures are outlined in:
 Klesmith, J. R., Bacik, J.-P., Wrenbeck, E. E., Michalczyk, R., and Whitehead, T. A. (2017) Trade-offs between enzyme fitness and solubility illuminated by deep mutational scanning, Proceedings of the National Academy of Sciences 114, 2265-2270.
