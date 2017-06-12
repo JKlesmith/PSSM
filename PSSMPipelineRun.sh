@@ -2,6 +2,7 @@
 
 #PSSM Pipeline
 #Copyright 2017, Justin R. Klesmith
+#BSD-3 License
 #Github [user: JKlesmith] (www.github.com)
 #Original procedures are outlined in:
 #Klesmith, J. R., Bacik, J.-P., Wrenbeck, E. E., Michalczyk, R., and Whitehead, T. A. (2017) Trade-offs between enzyme fitness and solubility illuminated by deep mutational scanning, Proceedings of the National Academy of Sciences 114, 2265-2270.
