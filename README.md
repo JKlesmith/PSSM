@@ -1,7 +1,12 @@
 # PSSM
-Creating PSSMs from BlastP matches
+A pipeline for creating PSSMs from BlastP matches
 
-# ProteinPSSMPipeline.py
+Original procedures are outlined in:
+Klesmith, J. R., Bacik, J.-P., Wrenbeck, E. E., Michalczyk, R., and Whitehead, T. A. (2017) Trade-offs between enzyme fitness and solubility illuminated by deep mutational scanning, Proceedings of the National Academy of Sciences 114, 2265-2270.
+Version 2 Pipeline is outlined in:
+Publication in preparation
+
+# ProteinPSSMPipeline.py and PSSMPipelineRun.sh
 Is provided here with the BSD-3 license.
 
 # BlastXMLtoTSV.py
