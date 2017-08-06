@@ -13,13 +13,9 @@
 #>WildType_LGK
 #MPIATSTGDNVLDFTVLG...
 
-#Convert the blastp xml output to a tsv file
-#Edit: Add the XML filename
-python BlastXMLtoTSV.py -c ext BLASTPsearchresult.xml > BlastP.tsv
-
-#Convert the TSV into a fasta file with filters (-q is the min length of match sequence to query sequence, -s is the min sequence identity, -o is output filename for CDHIT)
+#Convert the XML into a fasta file with filters (-q is the min length of match sequence to query sequence, -s is the min sequence identity, -o is output filename for CDHIT)
 #Edit: Add the path to the file with the wild-type sequence, and other optional paramaters
-python ProteinPSSMPipeline.py TSVtoFASTA -f BlastP.tsv -q 0.6 -s 0.3 -w WildType -o Protein.fa
+python ProteinPSSMPipeline.py XMLtoFASTA -f BlastP.xml -q 0.6 -s 0.3 -w WildType -o Protein.fa
 
 #Run CDHIT (-c sets how similar to cluster the higher the number = the higher the threshold to cluster, -T is the number of threads)
 #Edit: Add the correct path to CD-HIT
