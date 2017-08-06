@@ -7,7 +7,8 @@
 #Note: If you are defining custom regions to split the MSA for psiblast go to line 398
 
 from __future__ import division
-import argparse
+from argparse import ArgumentParser
+from xml.etree import cElementTree
 import os
 import time
 
@@ -15,17 +16,17 @@ import time
 __author__ = "Justin R. Klesmith"
 __copyright__ = "Copyright 2017, Justin R. Klesmith"
 __license__ = "BSD-3"
-__version__ = "2.0, Build: 20170612"
+__version__ = "2.1, Build: 20170806"
 __maintainer__ = "Justin R. Klesmith"
 __email__ = ["jrk@umn.edu", "justinklesmith@gmail.com"]
 
 #Setup subparsers
-parser = argparse.ArgumentParser(prog='Protein PSSM Pipeline', description='Create a PSSM for a protein using a BlastP search')
+parser = ArgumentParser(prog='Protein PSSM Pipeline', description='Create a PSSM for a protein using a BlastP search')
 subparsers = parser.add_subparsers(help='Usage: python ProteinPSSMPipeline.py {RunMode} -flags', dest='RunUsed')
 
-# Create the parser for the TSVtoFASTA run
-parser_a = subparsers.add_parser('TSVtoFASTA', help='Convert the TSV file into a fasta file for CDHIT')
-parser_a.add_argument('-f', dest='ncbi', action='store', required=True, help='File path to TSV')
+# Create the parser for the XMLtoFASTA run
+parser_a = subparsers.add_parser('XMLtoFASTA', help='Convert the XML file into a fasta file for CDHIT')
+parser_a.add_argument('-f', dest='ncbi', action='store', required=True, help='File path to XML file from the BlastP search')
 parser_a.add_argument('-w', dest='wildtype', action='store', required=True, help='Path to the file with the wild-type sequence')
 parser_a.add_argument('-o', dest='outfile', action='store', required=True, help='Output filename')
 parser_a.add_argument('-q', dest='querylen', action='store', nargs='?', const=1, default=0.6, help='Minimum length of match to query length. Default = 0.6 (i.e. 60 percent)')
@@ -79,41 +80,41 @@ def CleanStrForFilenames(filename):
     FILEOUT = "".join(c for c in filename if c.isalnum() or c in keepcharacters).rstrip()
     return FILEOUT
 
-def TSVtoFASTA():
-    """Convert the TSV file into a fasta file for CDHIT"""
+def XMLtoFASTA():
+    """Convert the XML file into a fasta file for CDHIT"""
     #Check inputs for valid values
     try:
         MINLEN = float(args.querylen)
     except ValueError:
-        print "TSVtoFASTA Error: An incorrect value given for the querylen (option -q)"
+        print "XMLtoFASTA Error: An incorrect value given for the querylen (option -q)"
         quit()
 
     try:
         MINSEQID = float(args.seqid)
     except ValueError:
-        print "TSVtoFASTA Error: An incorrect value given for the seqid (option -s)"
+        print "XMLtoFASTA Error: An incorrect value given for the seqid (option -s)"
         quit()
 
     if MINLEN > 1:
-        print "TSVtoFASTA Error: The minimum lenth to query length is greater than one. (Valid values: 0.0 to 1.0)"
+        print "XMLtoFASTA Error: The minimum lenth to query length is greater than one. (Valid values: 0.0 to 1.0)"
         quit()
     elif MINLEN < 0:
-        print "TSVtoFASTA Error: The minimum length to query length is less than zero. (Valid values: 0.0 to 1.0)"
+        print "XMLtoFASTA Error: The minimum length to query length is less than zero. (Valid values: 0.0 to 1.0)"
         quit()
 
     if MINSEQID > 1:
-        print "TSVtoFASTA Error: The minimum sequence identity is greater than one. (Valid values: 0.0 to 1.0)"
+        print "XMLtoFASTA Error: The minimum sequence identity is greater than one. (Valid values: 0.0 to 1.0)"
         quit()
     elif MINSEQID < 0:
-        print "TSVtoFASTA Error: The minimum sequence identity is less than zero. (Valid values: 0.0 to 1.0)"
+        print "XMLtoFASTA Error: The minimum sequence identity is less than zero. (Valid values: 0.0 to 1.0)"
         quit()
 
     if os.path.isfile(args.wildtype) == False:
-        print "TSVtoFASTA Error: The path to the file with the wild-type sequence is missing"
+        print "XMLtoFASTA Error: The path to the file with the wild-type sequence is missing"
         quit()
 
     if os.path.isfile(args.ncbi) == False:
-        print "TSVtoFASTA Error: Cannot open the processed NCBI TSV"
+        print "XMLtoFASTA Error: Cannot open the processed NCBI TSV"
         quit()
 
     #Get the Wild-Type amino acid sequence
@@ -122,47 +123,43 @@ def TSVtoFASTA():
     #Check to see if the output filename is valid
     OUTFILENAME = CleanStrForFilenames(args.outfile)
     
-    #Flag to see if our WT is in the TSV input
+    #Flag to see if our WT is in the XML input
     WTINNCBI = False 
 
     #Import NCBI information from TSV
     f2 = open(OUTFILENAME, 'w')
-    with open(args.ncbi, 'r') as infile: #Open the file with the wild-type protein sequence
-        for line in infile:
-            split = line.split("\t")
-            Assession = split[1]
-            PIDMatches = float(split[2])
-            AlignLen = int(split[3])
-            StartQuery = int(split[6])
-            EndQuery = int(split[7])
-            StartMatch = int(split[8])
-            EndMatch = int(split[9])
-            Identities = int(split[14])
-            NumGaps = int(split[16])
-            Query = split[20]
-            Match = split[21]
-            Description = split[24].rstrip("\n")
-
-            #Verify that the match length is >= 60% of query
-            if float(AlignLen/WTLEN) >= MINLEN:
+    for event, elem in cElementTree.iterparse(args.ncbi):
+        if elem.tag == "Hit":
+            hitNUM = elem.find("Hit_num").text
+            hitID = elem.find("Hit_id").text
+            hitNAME = elem.find("Hit_def").text
+            hitACCESSION = elem.find("Hit_accession").text
+            hitIDENTITIES = int(elem.find("Hit_hsps").find("Hsp").find("Hsp_identity").text)
+            hitALIGNLEN = int(elem.find("Hit_hsps").find("Hsp").find("Hsp_align-len").text)
+            hitSEQUENCE = elem.find("Hit_hsps").find("Hsp").find("Hsp_hseq").text
+            
+            #Verify that the alignment length is >= 60% of query
+            if float(hitALIGNLEN/WTLEN) >= MINLEN:
 
                 #Verify that the sequence identity is >= 30%
-                if float(Identities/AlignLen) >= MINSEQID:
+                if float(hitIDENTITIES/hitALIGNLEN) >= MINSEQID:
 
                     #Remove dashes from the ncbi match (cd-hit shits them out as bad formatting)
                     chars_to_remove = ['-']
 
                     #Check to see if the sequence was WT
-                    if Match.translate(None, ''.join(chars_to_remove)) == WTSEQ:
+                    if hitSEQUENCE.translate(None, ''.join(chars_to_remove)) == WTSEQ:
                         WTINNCBI = True
 
                         #Write the wild-type to the file
                         f2.write(WTNAME+'\n')
-                        f2.write(Match.translate(None, ''.join(chars_to_remove))+'\n\n')
+                        f2.write(hitSEQUENCE.translate(None, ''.join(chars_to_remove))+'\n\n')
                     else:
                         #Write the other matches to the file
-                        f2.write(">"+Assession+Description+'\n')
-                        f2.write(Match.translate(None, ''.join(chars_to_remove))+'\n\n')
+                        f2.write(">"+hitACCESSION+"_"+hitID+"_"+hitNAME+'\n')
+                        f2.write(hitSEQUENCE.translate(None, ''.join(chars_to_remove))+'\n\n')
+            
+            elem.clear()
 
     #If WT was not in the NCBI input then add it
     if WTINNCBI == False:
@@ -558,9 +555,9 @@ def main():
     print args
     
     #Select which run off of the command line args
-    if args.RunUsed == "TSVtoFASTA":
-        print "Run Mode: TSVtoFASTA"
-        TSVtoFASTA()
+    if args.RunUsed == "XMLtoFASTA":
+        print "Run Mode: XMLtoFASTA"
+        XMLtoFASTA()
     elif args.RunUsed == "CDHITWTCheck":
         print "Run Mode: CDHITWTCheck"
         CDHITWTCheck()
